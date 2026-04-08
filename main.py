@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from data.loader import load_price_data
+from data.loader import load_price_data, load_price_data_from_api
 from engine.backtester import Backtester
 from reporting.console import (
     print_comparison,
@@ -32,6 +32,20 @@ def parse_args() -> argparse.Namespace:
         "--csv",
         default="data/sample_prices.csv",
         help="Path to a CSV with at least 'date' and 'close' columns.",
+    )
+    parser.add_argument(
+        "--symbol",
+        help="Ticker symbol to fetch from Alpha Vantage instead of loading a local CSV.",
+    )
+    parser.add_argument(
+        "--api-key",
+        help="Alpha Vantage API key. If omitted, ALPHAVANTAGE_API_KEY will be used.",
+    )
+    parser.add_argument(
+        "--api-outputsize",
+        choices=["compact", "full"],
+        default="compact",
+        help="Amount of daily history to request from Alpha Vantage when --symbol is used.",
     )
     parser.add_argument(
         "--initial-cash",
@@ -116,7 +130,14 @@ def build_strategy(args: argparse.Namespace) -> Strategy:
 
 def main() -> None:
     args = parse_args()
-    bars = load_price_data(args.csv)
+    if args.symbol:
+        bars = load_price_data_from_api(
+            symbol=args.symbol,
+            api_key=args.api_key,
+            outputsize=args.api_outputsize,
+        )
+    else:
+        bars = load_price_data(args.csv)
     strategy = build_strategy(args)
     backtester = Backtester(initial_cash=args.initial_cash)
     result = backtester.run(bars, strategy)
