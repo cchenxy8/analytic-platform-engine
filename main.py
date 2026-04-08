@@ -55,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--plot",
-        default="equity_curve.svg",
+        default="outputs/equity_curve.svg",
         help="Output path for the generated equity curve SVG.",
     )
     parser.add_argument(

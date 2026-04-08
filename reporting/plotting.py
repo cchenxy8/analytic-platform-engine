@@ -15,6 +15,7 @@ def render_equity_curve_svg(
         raise ValueError("Cannot render an equity curve with no portfolio history.")
 
     path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     width = 900
     height = 420
     padding = 50
