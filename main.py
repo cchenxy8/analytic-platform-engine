@@ -15,7 +15,7 @@ from reporting.plotting import render_equity_curve_svg
 from strategies.base import Strategy
 from strategies.buy_and_hold import BuyAndHoldStrategy
 from strategies.mean_reversion import MeanReversionStrategy
-from strategies.moving_average_crossover import MovingAverageCrossoverStrategy
+from strategies.moving_average import MovingAverageStrategy
 
 DEBUG_ROW_LIMIT = 10
 
@@ -24,7 +24,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run a simple backtest with one of the available strategies.")
     parser.add_argument(
         "--strategy",
-        choices=["buy_and_hold", "ma_crossover", "mean_reversion"],
+        choices=["buy_and_hold", "moving_average", "mean_reversion"],
         default="buy_and_hold",
         help="Strategy to run.",
     )
@@ -48,13 +48,13 @@ def parse_args() -> argparse.Namespace:
         "--short-window",
         type=int,
         default=3,
-        help="Short moving average window for ma_crossover.",
+        help="Short moving average window for moving_average.",
     )
     parser.add_argument(
         "--long-window",
         type=int,
         default=5,
-        help="Long moving average window for ma_crossover.",
+        help="Long moving average window for moving_average.",
     )
     parser.add_argument(
         "--lookback-window",
@@ -74,17 +74,34 @@ def parse_args() -> argparse.Namespace:
         default=0.01,
         help="Sell when price is this fraction above the moving average for mean_reversion.",
     )
+    parser.add_argument(
+        "--debug-moving-average",
+        action="store_true",
+        help="Print per-bar moving average diagnostics for the moving_average strategy.",
+    )
+    parser.add_argument(
+        "--debug-mean-reversion",
+        action="store_true",
+        help="Print per-bar rolling mean diagnostics for the mean_reversion strategy.",
+    )
+    parser.add_argument(
+        "--debug-limit",
+        type=int,
+        default=10,
+        help="Number of eligible debug rows to print for strategy-specific diagnostics.",
+    )
     return parser.parse_args()
 
 
 def build_strategy(args: argparse.Namespace) -> Strategy:
     if args.strategy == "buy_and_hold":
         return BuyAndHoldStrategy(liquidate_on_last_bar=True)
-    if args.strategy == "ma_crossover":
-        return MovingAverageCrossoverStrategy(
+    if args.strategy == "moving_average":
+        return MovingAverageStrategy(
             short_window=args.short_window,
             long_window=args.long_window,
             liquidate_on_last_bar=True,
+            debug=args.debug_moving_average,
         )
 
     return MeanReversionStrategy(
@@ -92,6 +109,8 @@ def build_strategy(args: argparse.Namespace) -> Strategy:
         entry_threshold=args.entry_threshold,
         exit_threshold=args.exit_threshold,
         liquidate_on_last_bar=True,
+        debug=args.debug_mean_reversion,
+        debug_limit=args.debug_limit,
     )
 
 

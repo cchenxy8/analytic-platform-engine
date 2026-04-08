@@ -39,7 +39,7 @@ def _format_ratio(value: float) -> str:
 
 def print_strategy_details(args: Namespace) -> None:
     print(f"Strategy         : {args.strategy}")
-    if args.strategy == "ma_crossover":
+    if args.strategy == "moving_average":
         print(f"Short Window     : {args.short_window}")
         print(f"Long Window      : {args.long_window}")
     elif args.strategy == "mean_reversion":
